@@ -90,7 +90,7 @@ def chose(path):
                 dict['总'][type_pre] = 0
 
                 filenum_temp += 1                       #输出文件处理进度
-                print(' '*150 + '\r' + ' '*21 + '%-5.2f s  ||  '%(time.time()-file_time) + "%5d/%-5d  || "%(filenum_temp, filenum) +'#'*int(20*filenum_temp/filenum) +'%3.0f%%\r'%(100*filenum_temp/filenum) + '%-15s ||\r' % type_pre , end = "")
+                print(' '*150 + '\r' + ' '*21 + '%-5.2f s  ||  '%(time.time()-file_time) + "%5d/%-5d  || "%(filenum_temp, filenum) +'#'*int(20*filenum_temp/filenum) +'%3.0f%%\r'%(100*filenum_temp/filenum) + '%-15s ||\r' % type_pre, end = '')
 
                 chose(os.path.join(path, x))            #递归处理
 
@@ -119,7 +119,6 @@ def vector():
     global C                                            #属于该文本类型但不包含该词的文档数量
     global D                                            #不属于该文本类型又不包含该词的文档数量
     global result                                       #当前文本类型内所有词的向量
-    global probality                                    #概率
 
     result_temp = {}
 
@@ -144,8 +143,6 @@ def vector():
     type_num = 0
     for j in type:                                      #统计所有文本类型的向量及概率
 
-        probality[j] = dict['总'][j]/filenum_sum
-
         type_num += 1
         print(' ' * 150 + '\r' + ' ' * 40 + '%-5.2f s  ||  ' % (time.time() - now) + "%5d/%-5d  || " % (type_num, type_len) + '#' * int(20 * type_num / type_len) + '%3.0f%%\r'%(100 * type_num / type_len) + '%-15s ||\r' % j, end = "")
         result[j] = {}
@@ -167,7 +164,6 @@ def vector():
             fdo.writelines('%-15s' % j + '%-10s' % i + '\n' + ' ' * 20 + '%-25s' % str(result[j][i][0]) + '%15s' % str(result[j][i][1]) + '\n')
 
 def classify(path):
-    global probality                                    #概率
     global dict                                         #词典
     global type                                         #所有文本类型
     global filenum                                      #当前文件夹文档数量
@@ -195,7 +191,7 @@ def classify(path):
                     filenum -= 1
 
                 if filenum:
-                    classify(os.path.join(path, x))        #递归处理
+                    classify(os.path.join(path, x))     #递归处理
                                                         #输出文件处理结果,并重置参数
                 print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%  ||  ' + '%-5.2f s\r'%(time.time()-file_time) + '%s'%filename)
                 file_time = time.time()
@@ -204,9 +200,9 @@ def classify(path):
             else:                                       ##如果本文件夹中是文件
 
                 filenum_temp += 1                       #输出文件处理进度
-                print(' '*150 + '\r' + ' '*21 + '%-5.2f s  ||  '%(time.time()-file_time) + "%5d/%-5d  || "%(filenum_temp, filenum) +'#'*int(20*filenum_temp/filenum) +'%3.0f%%\r'%(100*filenum_temp/filenum) + '%-15s ||\r' % type_pre , end = "")
+                print(' '*150 + '\r' + ' '*21 + '%-5.2f s  ||  '%(time.time()-file_time) + "%5d/%-5d  || "%(filenum_temp, filenum) +'#'*int(20*filenum_temp/filenum) +'%3.0f%%\r'%(100*filenum_temp/filenum) + '%-15s ||\r' % type_pre, end = "")
 
-                classify(os.path.join(path, x))           #递归处理
+                classify(os.path.join(path, x))         #递归处理
 
 
     elif os.path.isfile(path):                          ###判断为文件
@@ -226,15 +222,22 @@ def classify(path):
             if line and line.decode()[0] == '*' and flag:
                 word.add(line.decode().strip()[2:])
         fpi.close()
+        print(dict['总'])
 
         temp = {}
+        a = 0
         for i in result:
-            temp[i] = math.log(probality[i], 2)
+            temp[i] = math.log(dict['总'][i]/filenum_sum, 2)
             for j in word:
                 if j in dict and i in dict[j]:
-                    temp[i] += math.log((dict[j][i]+1)/(dict['总'][i]+2), 2)
+                    b = (dict[j][i]+1)
+                    c = (dict['总'][i]+2)
+                    a = math.log(b/c, 2)
+                    temp[i] += a
                 else:
-                    temp[i] += math.log((0+1)/(dict['总'][i]+2), 2)
+                    a += math.log((0+1)/(dict['总'][i]+2), 2)
+                    temp[i] += a
+            print(i, temp[i])
 
         fpo = open(os.path.join(sys.path[0], 'classify_result.txt'), "ab")
         fpo.write(sorted(temp, key=temp.get, reverse=True)[0].encode() + b'\n')
@@ -259,18 +262,6 @@ if __name__=="__main__":
     C = {}                                              #属于该文本类型但不包含该词的文档数量
     D = {}                                              #不属于该文本类型又不包含该词的文档数量
     result = {}                                         #当前文本类型内所有词的向量
-    probality = {}                                      #概率
-
-    #local
-    dic = {}                                            #词典
-    dictype = sys.argv[4]                               #词典编码格式
-
-                                                        #打开字典文件，并转换成dictionary结构
-    fpd = open(os.path.join(sys.path[0], sys.argv[3]), "rb")
-    dic_row = fpd.read().split(b'\n')
-    for i in dic_row:
-        dic[i.strip().decode(dictype)] = 1
-    fpd.close()
                                                         #开始提取所有文件样本分词
     print('\n             +++-------------------------------+++')
     print('++-----------+++---------提取样本分词----------+++-----------++')
@@ -297,7 +288,7 @@ if __name__=="__main__":
     print('++-----------+++---------开始文本分类----------+++-----------++')
     print('             +++-------------------------------+++\n')
     sum_time = file_time = time.time()
-    classify(os.path.join(sys.path[0], sys.argv[5]))
+    classify(os.path.join(sys.path[0], sys.argv[3]))
     print('             +++-------------------------------+++')
     print("                 进行文本分类共耗费%f s"%(time.time()-sum_time))
     print('             +++-------------------------------+++')
