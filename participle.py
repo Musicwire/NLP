@@ -37,7 +37,7 @@ def text_analyse(path):
                 if filenum:
                     text_analyse(os.path.join(path, x)) #递归处理
                                                         #输出文件处理结果,并重置参数
-                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%  ||  ' + '%-5.2f s\r'%(time.time()-file_time) + '%s'%filename)
+                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%  ||  ' + '%-5.2f s\r'%(time.time()-file_time) + '%s'%filename, end = "")
                 file_time = time.time()
 
 
@@ -242,6 +242,7 @@ if __name__=="__main__":
     startagain = time.time()
     file_time = time.time()
     participle(os.path.join(sys.path[0], sys.argv[1]))  #开始对所有文件进行分词
+    dic.clear()
 
     now = time.time()                                   #收尾统计工作
     print("+++---------------------------------+++")
