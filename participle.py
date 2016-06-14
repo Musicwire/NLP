@@ -37,7 +37,7 @@ def text_analyse(path):
                 if filenum:
                     text_analyse(os.path.join(path, x)) #递归处理
                                                         #输出文件处理结果,并重置参数
-                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%  ||  ' + '%-5.2f s\r'%(time.time()-file_time) + '%s'%filename, end = "")
+                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%  ||  ' + '%-5.2f s\r'%(time.time()-file_time) + '%s'%filename)
                 file_time = time.time()
 
 

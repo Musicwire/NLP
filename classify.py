@@ -180,8 +180,9 @@ def classify(path):
     global filenum_temp                                 #当前文件夹文档数量(打印处理进度专用)
     global filenum_sum                                  #所有文档数量
     global file_classify                                #所进行处理的类别
-    global type_name                                    #当前文本类型
     global file_time                                    #本文件夹处理时间
+    global file_evaluate                                #文本性能分析统计
+    global type_name                                    #当前文本类型
     global system                                       #操作系统类型
     global TF_IDF                                       #tf-idf
     global match                                        #分类正确
@@ -197,13 +198,14 @@ def classify(path):
 
                 filenum_temp = 0
                 filename = x
+                file_evaluate[filename] = ['', '', '']
 
                 file_classify.update(os.listdir(path))
-                try:
+                if '.DS_Store' in file_classify:
                     file_classify.remove('.DS_Store')
-                except:
-                    print('.DS_Store did not exist')
+
                 filenum = len(os.listdir(os.path.join(path, x)))
+                file_evaluate[filename][0] = filenum
 
                 if system == 'Darwin':
                     filenum -= 1
@@ -211,7 +213,8 @@ def classify(path):
                 if filenum:
                     classify(os.path.join(path, x))     #递归处理
                                                         #输出文件处理结果,并重置参数
-                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%%  ||  %-5.2f s  ||  Recall:%-6.2f%%  ||  Precision:%-6.2f%%\r'%(time.time()-file_time, 100*match/dict['总'][filename], 100*match/len(os.listdir(os.path.join(path, x)))) + '%s'%filename)
+                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%%  ||  %-5.2f s \r'%(time.time()-file_time) + '%s'%filename)
+                file_evaluate[filename][2] = match
                 match = 0
                 file_time = time.time()
 
@@ -256,6 +259,22 @@ def classify(path):
         if sorted(temp, key=temp.get, reverse=True)[0].encode() == os.path.split(path)[0][os.path.split(path)[0].find(sys.argv[2])+len(sys.argv[2])+1:].encode():
             match += 1
 
+def evaluate():
+    fpe = open(os.path.join(sys.path[0], 'classify_result.txt'), "rb")
+    for i in file_classify:
+        file_evaluate[i][1] = 0
+
+    for line in fpe:
+        line = line.strip()
+        if len(line):
+            file_evaluate[line.decode()[line.decode().rfind(' ') + 1:]][1] += 1
+
+    for i in sorted(file_classify):
+        if file_evaluate[i][1] == 0:
+            print(' ' * 150 + '\r' + ' ' * 20 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 0) + '%s' % i)
+        else:
+            print(' ' * 150 + '\r' + ' ' * 20 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 100 * file_evaluate[i][2] / file_evaluate[i][1]) + '%s' % i)
+
 
 if __name__=="__main__":
 
@@ -272,6 +291,7 @@ if __name__=="__main__":
     filenum_sum = 0                                     #所有文档数量
     file_classify = set()                               #所进行处理的类别
     first_chose_file = 1                                #第一次进入该类文件
+    file_evaluate = {}                                  #性能分析统计
     system = platform.system()                          #记录操作系统
     match = 0                                           #分类正确
     A = {}                                              #属于该文本类型又包含该词的文档数量
@@ -303,4 +323,14 @@ if __name__=="__main__":
     classify(os.path.join(sys.path[0], sys.argv[2]))
     print('             +++-------------------------------+++')
     print("                 进行文本分类共耗费%f s"%(time.time()-sum_time))
+    print('             +++-------------------------------+++')
+
+    print('\n\n             +++-------------------------------+++')
+    print('++-----------+++---------统计分类性能----------+++-----------++')
+    print('             +++-------------------------------+++\n')
+
+    evaluate()
+
+    print('             +++-------------------------------+++')
+    print("                 完成分类性能统计,程序结束")
     print('             +++-------------------------------+++')
