@@ -1,1 +1,1 @@
-python3 /Users/bacon/Documents/Git/NLP/classify.py output/体育领域/体育分类训练文档 gb2312 dict.txt gbk output/体育领域/体育分类测试文档
+python3 /Users/bacon/Documents/Git/NLP/classify.py output/体育领域/体育分类训练文档 output/体育领域/体育分类测试文档
