@@ -4,7 +4,6 @@ import os
 import platform
 import time
 import math
-import string
 
 def calc():
     global words                                        #所有词
