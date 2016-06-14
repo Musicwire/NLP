@@ -193,14 +193,16 @@ def classify(path):
             if os.path.split(path)[1] == '.DS_Store':   ##排除mac中系统文件
                 continue
 
-
             if os.path.isdir(os.path.join(path, x)):    ##如果本文件夹中是文件夹,初始化其中的文件夹
 
                 filenum_temp = 0
                 filename = x
 
                 file_classify.update(os.listdir(path))
-                file_classify.remove('.DS_Store')
+                try:
+                    file_classify.remove('.DS_Store')
+                except:
+                    print('.DS_Store did not exist')
                 filenum = len(os.listdir(os.path.join(path, x)))
 
                 if system == 'Darwin':
@@ -209,10 +211,9 @@ def classify(path):
                 if filenum:
                     classify(os.path.join(path, x))     #递归处理
                                                         #输出文件处理结果,并重置参数
-                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%%  ||  %-5.2f s  ||  Recall:%-5.2f%%  ||  Precision:%-5.2f%%\r'%(time.time()-file_time, 100*match/dict['总'][filename], 100*match/len(os.listdir(os.path.join(path, x)))) + '%s'%filename)
+                print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%%  ||  %-5.2f s  ||  Recall:%-6.2f%%  ||  Precision:%-6.2f%%\r'%(time.time()-file_time, 100*match/dict['总'][filename], 100*match/len(os.listdir(os.path.join(path, x)))) + '%s'%filename)
                 match = 0
                 file_time = time.time()
-
 
             else:                                       ##如果本文件夹中是文件
 
