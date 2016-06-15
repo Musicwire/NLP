@@ -215,6 +215,7 @@ def classify(path):
                                                         #输出文件处理结果,并重置参数
                 print(' '*150 + '\r' + ' '*50 + '#'*20 + '100%%  ||  %-5.2f s \r'%(time.time()-file_time) + '%s'%filename)
                 file_evaluate[filename][2] = match
+                file_evaluate['总'][0] += match
                 match = 0
                 file_time = time.time()
 
@@ -258,6 +259,7 @@ def classify(path):
         fpo.write(os.path.split(path)[0][os.path.split(path)[0].find(sys.argv[2])+len(sys.argv[2])+1:].encode() + b" "*20 + os.path.split(path)[1].encode() + b" "*20 + sorted(temp, key=temp.get, reverse=True)[0].encode() + b'\n')
         if sorted(temp, key=temp.get, reverse=True)[0].encode() == os.path.split(path)[0][os.path.split(path)[0].find(sys.argv[2])+len(sys.argv[2])+1:].encode():
             match += 1
+        file_evaluate['总'][1] += 1
 
 def evaluate():
     fpe = open(os.path.join(sys.path[0], 'classify_result.txt'), "rb")
@@ -271,9 +273,9 @@ def evaluate():
 
     for i in sorted(file_classify):
         if file_evaluate[i][1] == 0:
-            print(' ' * 150 + '\r' + ' ' * 20 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 0) + '%s' % i)
+            print(' ' * 150 + '\r' + ' ' * 40 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  Accuracy:%-6.2f%% \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 0, 100*file_evaluate['总'][0]/file_evaluate['总'][1]) + '%s' % i)
         else:
-            print(' ' * 150 + '\r' + ' ' * 20 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 100 * file_evaluate[i][2] / file_evaluate[i][1]) + '%s' % i)
+            print(' ' * 150 + '\r' + ' ' * 40 + 'Recall:%-6.2f%%  ||  Precision:%-6.2f%%  ||  Accuracy:%-6.2f%% \r' % (100 * file_evaluate[i][2] / file_evaluate[i][0], 100 * file_evaluate[i][2] / file_evaluate[i][1], 100*file_evaluate['总'][0]/file_evaluate['总'][1]) + '%s' % i)
 
 
 if __name__=="__main__":
@@ -299,6 +301,8 @@ if __name__=="__main__":
     C = {}                                              #属于该文本类型但不包含该词的文档数量
     D = {}                                              #不属于该文本类型又不包含该词的文档数量
     result = {}                                         #当前文本类型内所有词的向量
+
+    file_evaluate['总'] = [0, 0]
                                                         #开始提取所有文件样本分词
     print('\n             +++-------------------------------+++')
     print('++-----------+++---------提取样本分词----------+++-----------++')
@@ -321,10 +325,12 @@ if __name__=="__main__":
     else:
         os.popen('rm -rf %s' % os.path.join(sys.path[0], 'classify_result.txt'))
     classify(os.path.join(sys.path[0], sys.argv[2]))
+
     print('             +++-------------------------------+++')
     print("                 进行文本分类共耗费%f s"%(time.time()-sum_time))
     print('             +++-------------------------------+++')
 
+    time.sleep(1)
     print('\n\n             +++-------------------------------+++')
     print('++-----------+++---------统计分类性能----------+++-----------++')
     print('             +++-------------------------------+++\n')
